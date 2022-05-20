@@ -72,6 +72,18 @@ return view.extend({
 			o.value(name)
 		});
 
+		o = s.option(form.Value, 'color_red', _('Red'));
+		o.description = _('If the hardware supports <abbr title="Red Green Blue">RGB</abbr> color, provide 8bit decimal values here (0-255) for the red component here.');
+		o.validate = this.checkColor;
+
+		o = s.option(form.Value, 'color_red', _('Green'));
+		o.description = _('If the hardware supports <abbr title="Red Green Blue">RGB</abbr> color, provide 8bit decimal values here (0-255) for the blue component here.');
+		o.validate = this.checkColor;
+
+		o = s.option(form.Value, 'color_red', _('Blue'));
+		o.description = _('If the hardware supports <abbr title="Red Green Blue">RGB</abbr> color, provide 8bit decimal values here (0-255) for the blue component here.');
+		o.validate = this.checkColor;
+
 		o = s.option(form.ListValue, 'trigger', _('Trigger'));
 		for (var i = 0; i < plugins.length; i++) {
 			var plugin = plugins[i];
@@ -136,5 +148,67 @@ return view.extend({
 		};
 
 		return m.render();
-	}
+	},
+
+	checkColor: function(section_id, value) {
+		var uiElement = this.getUIElement(section_id).node,
+			or = this.section.getOption('color_red'),
+			og = this.section.getOption('color_green'),
+			ob = this.section.getOption('color_blue'),
+			r,
+			g,
+			b,
+			indicator;
+
+		if (or && og && ob) {
+			or = or.getUIElement(section_id);
+			og = og.getUIElement(section_id);
+			ob = ob.getUIElement(section_id);
+
+			indicator = or.node.querySelector('.cbi-value-preview');
+			if (!indicator) {
+				indicator = document.createElement('SPAN');
+				indicator.classList.add('cbi-value-preview');
+				indicator.style.borderRadius = '0.5em';
+				indicator.style.display = 'none';
+				indicator.style.height = '1em';
+				indicator.style.marginLeft = '0.5em';
+				indicator.style.width = '1em';
+				or.node.appendChild(indicator);
+			}
+
+			r = Number(or.value);
+			g = Number(og.value);
+			b = Number(ob.value);
+		}
+
+		value = parseInt(value);
+
+		if (isNaN(value) || value < 0 || value > 255) {
+			if (indicator) {
+				indicator.style.display = 'none';
+			}
+
+			return _('invalid color value');
+		}
+
+		if (indicator) {
+			switch (this.option) {
+				case 'color_red':
+					r = value;
+					break;
+				case 'color_green':
+					g = value;
+					break;
+				case 'color_blue':
+					b = value;
+					break;
+			}
+
+			indicator.style.display = 'inline-block';
+			indicator.style.backgroundColor = 'rgb(' + r + ',' + g + ',' + b + ')';
+		}
+
+		return true;
+	},
 });
